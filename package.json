@@ -1,0 +1,25 @@
+{
+  "name": "blog-app-backend",
+  "version": "1.0.0",
+  "description": "Blog app",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "server": "nodemon server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/shanewilsonpro/blog-app-backend.git"
+  },
+  "keywords": [],
+  "author": "Shane Wilson",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/shanewilsonpro/blog-app-backend/issues"
+  },
+  "homepage": "https://github.com/shanewilsonpro/blog-app-backend#readme",
+  "dependencies": {
+    "express": "^4.18.1",
+    "nodemon": "^2.0.20"
+  }
+}
