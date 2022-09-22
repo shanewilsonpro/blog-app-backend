@@ -1,5 +1,7 @@
 const expressAsyncHandler = require("express-async-handler");
+const generateToken = require("../../config/token/generateToken");
 const User = require("../../models/user/User");
+const validateMongodbId = require("../../utils/validateMongodbID");
 
 //-------------------------------------
 //Register
@@ -38,21 +40,52 @@ const loginUserController = expressAsyncHandler(async (req, res) => {
 
   //Check if password is match
   if (userFound && (await userFound.isPasswordMatched(password))) {
-    res.json(userFound);
-    // res.json({
-    //   _id: userFound?._id,
-    //   firstName: userFound?.firstName,
-    //   lastName: userFound?.lastName,
-    //   email: userFound?.email,
-    //   profilePhoto: userFound?.profilePhoto,
-    //   isAdmin: userFound?.isAdmin,
-    //   token: generateToken(userFound?._id),
-    //   isVerified: userFound?.isAccountVerified,
-    // });
+    res.json({
+      _id: userFound?._id,
+      firstName: userFound?.firstName,
+      lastName: userFound?.lastName,
+      email: userFound?.email,
+      profilePhoto: userFound?.profilePhoto,
+      isAdmin: userFound?.isAdmin,
+      token: generateToken(userFound?._id),
+      isVerified: userFound?.isAccountVerified,
+    });
   } else {
     res.status(401);
     throw new Error("Invalid Login Credentials");
   }
 });
 
-module.exports = { userRegisterController, loginUserController };
+//------------------------------
+//Users
+//-------------------------------
+const fetchUsersController = expressAsyncHandler(async (req, res) => {
+  try {
+    const users = await User.find({});
+    res.json(users);
+  } catch (error) {
+    res.json(error);
+  }
+});
+
+//------------------------------
+//Delete user
+//------------------------------
+const deleteUsersController = expressAsyncHandler(async (req, res) => {
+    const { id } = req.params;
+    //check if user id is valid
+    validateMongodbId(id);
+    try {
+      const deletedUser = await User.findByIdAndDelete(id);
+      res.json(deletedUser);
+    } catch (error) {
+      res.json(error);
+    }
+  });
+
+module.exports = {
+  userRegisterController,
+  loginUserController,
+  fetchUsersController,
+  deleteUsersController,
+};
