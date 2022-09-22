@@ -72,20 +72,117 @@ const fetchUsersController = expressAsyncHandler(async (req, res) => {
 //Delete user
 //------------------------------
 const deleteUsersController = expressAsyncHandler(async (req, res) => {
-    const { id } = req.params;
-    //check if user id is valid
-    validateMongodbId(id);
-    try {
-      const deletedUser = await User.findByIdAndDelete(id);
-      res.json(deletedUser);
-    } catch (error) {
-      res.json(error);
+  const { id } = req.params;
+  //check if user id is valid
+  validateMongodbId(id);
+  try {
+    const deletedUser = await User.findByIdAndDelete(id);
+    res.json(deletedUser);
+  } catch (error) {
+    res.json(error);
+  }
+});
+
+//----------------
+//user details
+//----------------
+const fetchUserDetailsController = expressAsyncHandler(async (req, res) => {
+  const { id } = req.params;
+  //check if user id is valid
+  validateMongodbId(id);
+  try {
+    const user = await User.findById(id);
+    res.json(user);
+  } catch (error) {
+    res.json(error);
+  }
+});
+
+//------------------------------
+//User profile
+//------------------------------
+const userProfileController = expressAsyncHandler(async (req, res) => {
+  const { id } = req.params;
+  validateMongodbId(id);
+  //1.Find the login user
+  //2. Check this particular if the login user exists in the array of viewedBy
+
+  //Get the login user
+  const loginUserId = req?.user?._id?.toString();
+  console.log(typeof loginUserId);
+  try {
+    const myProfile = await User.findById(id);
+    res.json(myProfile);
+    // .populate("posts")
+    // .populate("viewedBy");
+    //   const alreadyViewed = myProfile?.viewedBy?.find(user => {
+    //     console.log(user);
+    //     return user?._id?.toString() === loginUserId;
+    //   });
+    //   if (alreadyViewed) {
+    //     res.json(myProfile);
+    //   } else {
+    //     const profile = await User.findByIdAndUpdate(myProfile?._id, {
+    //       $push: { viewedBy: loginUserId },
+    //     });
+    //     res.json(profile);
+    //   }
+  } catch (error) {
+    res.json(error);
+  }
+});
+
+//------------------------------
+//Update profile
+//------------------------------
+const updateUserController = expressAsyncHandler(async (req, res) => {
+  const { _id } = req?.user;
+  //block
+//   blockUser(req?.user);
+  validateMongodbId(_id);
+  const user = await User.findByIdAndUpdate(
+    _id,
+    {
+      firstName: req?.body?.firstName,
+      lastName: req?.body?.lastName,
+      email: req?.body?.email,
+      bio: req?.body?.bio,
+    },
+    {
+      new: true,
+      runValidators: true,
     }
-  });
+  );
+  res.json(user);
+});
+
+//------------------------------
+//Update password
+//------------------------------
+const updateUserPasswordController = expressAsyncHandler(async (req, res) => {
+  //destructure the login user
+  const { _id } = req.user;
+  const { password } = req.body;
+  validateMongodbId(_id);
+  //Find the user by _id
+  const user = await User.findById(_id);
+
+  if (password) {
+    user.password = password;
+    const updatedUser = await user.save();
+    res.json(updatedUser);
+  } else {
+    res.json(user);
+  }
+});
 
 module.exports = {
   userRegisterController,
   loginUserController,
   fetchUsersController,
   deleteUsersController,
+  fetchUserDetailsController,
+  userProfileController,
+  updateUserController,
+  updateUserPasswordController,
 };
