@@ -1,7 +1,11 @@
 const expressAsyncHandler = require("express-async-handler");
+const sgMail = require("@sendgrid/mail");
+const crypto = require("crypto");
 const generateToken = require("../../config/token/generateToken");
 const User = require("../../models/user/User");
 const validateMongodbId = require("../../utils/validateMongodbID");
+
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 //-------------------------------------
 //Register
@@ -278,6 +282,57 @@ const unBlockUserController = expressAsyncHandler(async (req, res) => {
   res.json(user);
 });
 
+//------------------------------
+// Generate Email verification token
+//------------------------------
+const generateVerificationTokenController = expressAsyncHandler(
+  async (req, res) => {
+    const loginUserId = req.user.id;
+    const user = await User.findById(loginUserId);
+
+    try {
+      //Generate token
+      const verificationToken = await user?.createAccountVerificationToken();
+      //save the user
+      await user.save();
+      console.log(verificationToken);
+      //build your message
+      const resetURL = `If you were requested to verify your account, verify now within 10 minutes, otherwise ignore this message <a href="http://localhost:3000/verify-account/${verificationToken}">Click to verify your account</a>`;
+
+      const msg = {
+        to: user?.email,
+        from: "shanewilsonpro@gmail.com",
+        subject: "Verify your account",
+        html: resetURL,
+      };
+      await sgMail.send(msg);
+      res.json(resetURL);
+    } catch (error) {
+      res.json(error);
+    }
+  }
+);
+
+//------------------------------
+//Account verification
+//------------------------------
+const accountVerificationController = expressAsyncHandler(async (req, res) => {
+  const { token } = req.body;
+  const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+  //find this user by token
+  const userFound = await User.findOne({
+    accountVerificationToken: hashedToken,
+    accountVerificationTokenExpires: { $gt: new Date() },
+  });
+  if (!userFound) throw new Error("Token expired, try again later");
+  //update the proprt to true
+  userFound.isAccountVerified = true;
+  userFound.accountVerificationToken = undefined;
+  userFound.accountVerificationTokenExpires = undefined;
+  await userFound.save();
+  res.json(userFound);
+});
+
 module.exports = {
   userRegisterController,
   loginUserController,
@@ -291,4 +346,6 @@ module.exports = {
   unfollowUserController,
   blockUserController,
   unBlockUserController,
+  generateVerificationTokenController,
+  accountVerificationController,
 };

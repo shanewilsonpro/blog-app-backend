@@ -12,6 +12,8 @@ const {
   unfollowUserController,
   blockUserController,
   unBlockUserController,
+  generateVerificationTokenController,
+  accountVerificationController,
 } = require("../../controllers/users/usersController");
 const authMiddleware = require("../../middlewares/auth/authMiddleware");
 
@@ -34,6 +36,12 @@ userRoutes.put("/:id", authMiddleware, updateUserController);
 
 // update user password
 userRoutes.put("/password", authMiddleware, updateUserPasswordController);
+
+// send mail to user
+userRoutes.post("/generate-verify-email-token", authMiddleware, generateVerificationTokenController);
+
+// verify user account
+userRoutes.put("/verify-account", authMiddleware, accountVerificationController);
 
 // follow user
 userRoutes.put("/follow", authMiddleware, followingUserController);
