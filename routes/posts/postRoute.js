@@ -5,6 +5,8 @@ const {
   fetchPostController,
   updatePostController,
   deletePostController,
+  toggleAddLikeToPostController,
+  toggleAddDislikeToPostController
 } = require("../../controllers/posts/postController");
 const authMiddleware = require("../../middlewares/auth/authMiddleware");
 const {
@@ -29,5 +31,9 @@ postRoute.get("/:id", fetchPostController);
 postRoute.put("/:id", authMiddleware, updatePostController);
 
 postRoute.delete("/:id", authMiddleware, deletePostController);
+
+postRoute.put("/likes", authMiddleware, toggleAddLikeToPostController);
+
+postRoute.put("/dislikes", authMiddleware, toggleAddDislikeToPostController);
 
 module.exports = postRoute;
