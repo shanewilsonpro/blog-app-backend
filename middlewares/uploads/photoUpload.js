@@ -53,4 +53,5 @@ const postImgResize = async (req, res, next) => {
     .toFile(path.join(`public/images/posts/${req.file.filename}`));
   next();
 };
+
 module.exports = { photoUpload, profilePhotoResize, postImgResize };

@@ -1,5 +1,6 @@
 const expressAsyncHandler = require("express-async-handler");
 const sgMail = require("@sendgrid/mail");
+const fs = require("fs");
 const crypto = require("crypto");
 const generateToken = require("../../config/token/generateToken");
 const User = require("../../models/user/User");
@@ -116,9 +117,7 @@ const userProfileController = expressAsyncHandler(async (req, res) => {
   const loginUserId = req?.user?._id?.toString();
   console.log(typeof loginUserId);
   try {
-    const myProfile = await User.findById(id);
-    res.json(myProfile);
-    // .populate("posts")
+    const myProfile = await User.findById(id).populate("posts");
     // .populate("viewedBy");
     //   const alreadyViewed = myProfile?.viewedBy?.find(user => {
     //     console.log(user);
@@ -397,7 +396,7 @@ const profilePhotoUploadController = expressAsyncHandler(async (req, res) => {
   //Find the login user
   const { _id } = req.user;
   //block user
-//   blockUser(req?.user);
+  //   blockUser(req?.user);
   //1. Get the oath to img
   const localPath = `public/images/profile/${req.file.filename}`;
   //2.Upload to cloudinary
@@ -432,5 +431,5 @@ module.exports = {
   accountVerificationController,
   forgetPasswordToken,
   passwordResetController,
-  profilePhotoUploadController
+  profilePhotoUploadController,
 };
