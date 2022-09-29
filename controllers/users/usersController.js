@@ -4,6 +4,7 @@ const crypto = require("crypto");
 const generateToken = require("../../config/token/generateToken");
 const User = require("../../models/user/User");
 const validateMongodbId = require("../../utils/validateMongodbID");
+const cloudinaryUploadImg = require("../../utils/cloudinary");
 
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
@@ -389,6 +390,31 @@ const passwordResetController = expressAsyncHandler(async (req, res) => {
   res.json(user);
 });
 
+//------------------------------
+//Profile photo upload
+//------------------------------
+const profilePhotoUploadController = expressAsyncHandler(async (req, res) => {
+  //Find the login user
+  const { _id } = req.user;
+  //block user
+//   blockUser(req?.user);
+  //1. Get the oath to img
+  const localPath = `public/images/profile/${req.file.filename}`;
+  //2.Upload to cloudinary
+  const imgUploaded = await cloudinaryUploadImg(localPath);
+
+  const foundUser = await User.findByIdAndUpdate(
+    _id,
+    {
+      profilePhoto: imgUploaded?.url,
+    },
+    { new: true }
+  );
+  //remove the saved img
+  fs.unlinkSync(localPath);
+  res.json(imgUploaded);
+});
+
 module.exports = {
   userRegisterController,
   loginUserController,
@@ -406,4 +432,5 @@ module.exports = {
   accountVerificationController,
   forgetPasswordToken,
   passwordResetController,
+  profilePhotoUploadController
 };
