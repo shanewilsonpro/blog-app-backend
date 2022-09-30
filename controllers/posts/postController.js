@@ -70,7 +70,6 @@ const fetchPostsController = expressAsyncHandler(async (req, res) => {
 //------------------------------
 //Fetch a single post
 //------------------------------
-
 const fetchPostController = expressAsyncHandler(async (req, res) => {
   const { id } = req.params;
   validateMongodbId(id);
